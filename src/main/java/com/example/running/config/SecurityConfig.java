@@ -15,8 +15,8 @@ import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity
-
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
     @Autowired
     private DataSource dataSource;
 
@@ -29,19 +29,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
 
         http
+                .cors().and()
+                .csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/","/registration","/actuator/**","/login").permitAll()
+                .antMatchers("/","/registration","/actuator/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()
-
                 .permitAll()
                 .and()
-                .logout()
-                .permitAll().and().
-                cors().and().
-                csrf().disable();
-
+               .logout()
+                .permitAll()
+                .and()
+                .httpBasic();
 
     }
 
@@ -50,7 +50,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         auth.jdbcAuthentication()
                 .dataSource(dataSource)
                 .passwordEncoder(passwordEncoder())
-                .usersByUsernameQuery("select username, password from users where username=?");
+                .usersByUsernameQuery("select username, password, active from users where username=?")
+                .authoritiesByUsernameQuery("select username, 'ROLE_USER' from users where username=?");
 
     }
 }
